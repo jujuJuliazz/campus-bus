@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>下一班校巴</title>
+  <style>
+    :root {
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --teal: #0f766e;
+      --teal-soft: #ccfbf1;
+      --accent: #f97316;
+      --line: #e2e8f0;
+      --ok: #059669;
+      --warn: #d97706;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+    }
+    .wrap { max-width: 440px; margin: 0 auto; }
+    header { margin-bottom: 16px; }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+    .sub { color: var(--muted); font-size: 0.875rem; margin: 0; }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .tab {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 14px 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+    }
+    .tab small {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      opacity: 0.85;
+    }
+    .hero {
+      background: linear-gradient(160deg, #0f766e 0%, #115e59 55%, #134e4a 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 22px 20px 20px;
+      box-shadow: 0 16px 40px rgba(15, 118, 110, 0.28);
+    }
+    .hero .label {
+      font-size: 0.8125rem;
+      opacity: 0.85;
+      margin-bottom: 8px;
+    }
+    .hero .time {
+      font-size: 3.4rem;
+      font-weight: 720;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero .countdown {
+      margin-top: 10px;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+    .hero .meta {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      font-size: 0.875rem;
+      opacity: 0.92;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .empty {
+      background: var(--card);
+      border-radius: 22px;
+      padding: 28px 20px;
+      text-align: center;
+      border: 1px solid var(--line);
+    }
+    .empty strong { display: block; font-size: 1.125rem; margin-bottom: 6px; }
+    .empty p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    .panel {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    .panel h2 {
+      margin: 0;
+      padding: 14px 16px 10px;
+      font-size: 0.8125rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .list { list-style: none; margin: 0; padding: 0 8px 8px; }
+    .list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 10px;
+      border-radius: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .list li.next {
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-weight: 700;
+    }
+    .list li.past { color: #94a3b8; }
+    .chip {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.12);
+    }
+    .list li.past .chip { background: #f1f5f9; color: #94a3b8; }
+    .toolbar {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .toggle.on {
+      background: #fff7ed;
+      border-color: #fdba74;
+      color: #c2410c;
+      font-weight: 600;
+    }
+    .now {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+    }
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>下一班校巴</h1>
+      <p class="sub">打开即看 · 不用翻 App</p>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tabToSchool" type="button" aria-selected="true">
+        去学校
+        <small>启迪上车</small>
+      </button>
+      <button class="tab" id="tabHome" type="button" aria-selected="false">
+        回家
+        <small>道远楼东停车场上车</small>
+      </button>
+    </div>
+
+    <div id="hero"></div>
+
+    <div class="toolbar">
+      <button class="toggle" id="holidayToggle" type="button">按节假日时刻</button>
+      <span class="now" id="clock"></span>
+    </div>
+
+    <section class="panel">
+      <h2 id="listTitle">今日剩余班次</h2>
+      <ul class="list" id="list"></ul>
+    </section>
+
+    <footer>
+      工作日与周末自动切换。法定节假日请打开上方「按节假日时刻」。时刻表以你提供的为准。
+    </footer>
+  </div>
+
+  <script>
+    const SCHEDULE = {
+      toSchool: {
+        stop: "启迪",
+        weekday: ["07:35", "08:02"],
+        holiday: ["07:50"]
+      },
+      home: {
+        stop: "道远楼东停车场",
+        weekday: [
+          "08:20","08:50","09:20","09:50","10:10","10:50","11:30","12:10","12:40",
+          "13:20","14:00","14:40","15:20","16:00","17:00","18:00","19:00","20:00",
+          "20:50","21:40","22:30","23:00"
+        ],
+        holiday: [
+          "08:20","09:30","10:50","12:30","13:30","14:30","15:30","16:30",
+          "17:30","18:30","19:30","20:30","21:30","22:30","23:00"
+        ]
+      }
+    };
+
+    const state = {
+      direction: "toSchool",
+      forceHoliday: false
+    };
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    function parseHm(hm) {
+      const [h, m] = hm.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function formatHm(mins) {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${pad(h)}:${pad(m)}`;
+    }
+
+    function isWeekend(date) {
+      const d = date.getDay();
+      return d === 0 || d === 6;
+    }
+
+    function useHoliday(date) {
+      return state.forceHoliday || isWeekend(date);
+    }
+
+    function currentTimes(date) {
+      const route = SCHEDULE[state.direction];
+      return useHoliday(date) ? route.holiday : route.weekday;
+    }
+
+    function minutesUntil(targetMin, now) {
+      return targetMin - (now.getHours() * 60 + now.getMinutes());
+    }
+
+    function countdownText(diffMin) {
+      if (diffMin <= 0) return "即将发车 / 请抓紧";
+      if (diffMin < 60) return `${diffMin} 分钟后发车`;
+      const h = Math.floor(diffMin / 60);
+      const m = diffMin % 60;
+      return m === 0 ? `${h} 小时后发车` : `${h} 小时 ${m} 分钟后发车`;
+    }
+
+    function render() {
+      const now = new Date();
+      const route = SCHEDULE[state.direction];
+      const times = currentTimes(now);
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const upcoming = times
+        .map((t) => ({ t, min: parseHm(t) }))
+        .filter((x) => x.min >= nowMin);
+      const next = upcoming[0] || null;
+      const dayLabel = useHoliday(now) ? "周末/节假日" : "工作日";
+
+      document.getElementById("clock").textContent =
+        `现在 ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+      const hero = document.getElementById("hero");
+      if (!next) {
+        hero.innerHTML = `
+          <div class="empty">
+            <strong>今天没有更多班次了</strong>
+            <p>${route.stop} · ${dayLabel}末班已过</p>
+          </div>`;
+      } else {
+        const diff = minutesUntil(next.min, now);
+        hero.innerHTML = `
+          <div class="hero">
+            <div class="label">下一班 · ${route.stop}</div>
+            <div class="time">${next.t}</div>
+            <div class="countdown">${countdownText(diff)}</div>
+            <div class="meta">
+              <span>${dayLabel}</span>
+              <span>后面还有 ${Math.max(upcoming.length - 1, 0)} 班</span>
+            </div>
+          </div>`;
+      }
+
+      document.getElementById("listTitle").textContent =
+        `今日全部班次 · ${route.stop}`;
+
+      const list = document.getElementById("list");
+      list.innerHTML = times.map((t) => {
+        const min = parseHm(t);
+        const past = min < nowMin;
+        const isNext = next && t === next.t;
+        let chip = past ? "已过" : isNext ? "下一班" : "待发";
+        const cls = past ? "past" : isNext ? "next" : "";
+        return `<li class="${cls}"><span>${t}</span><span class="chip">${chip}</span></li>`;
+      }).join("");
+
+      const holidayBtn = document.getElementById("holidayToggle");
+      holidayBtn.classList.toggle("on", state.forceHoliday);
+      holidayBtn.textContent = state.forceHoliday ? "正在用节假日时刻" : "按节假日时刻";
+    }
+
+    document.getElementById("tabToSchool").addEventListener("click", () => {
+      state.direction = "toSchool";
+      document.getElementById("tabToSchool").classList.add("active");
+      document.getElementById("tabHome").classList.remove("active");
+      document.getElementById("tabToSchool").setAttribute("aria-selected", "true");
+      document.getElementById("tabHome").setAttribute("aria-selected", "false");
+      render();
+    });
+
+    document.getElementById("tabHome").addEventListener("click", () => {
+      state.direction = "home";
+      document.getElementById("tabHome").classList.add("active");
+      document.getElementById("tabToSchool").classList.remove("active");
+      document.getElementById("tabHome").setAttribute("aria-selected", "true");
+      document.getElementById("tabToSchool").setAttribute("aria-selected", "false");
+      render();
+    });
+
+    document.getElementById("holidayToggle").addEventListener("click", () => {
+      state.forceHoliday = !state.forceHoliday;
+      render();
+    });
+
+    // Sensible default: morning → to school, otherwise home
+    (function initDirection() {
+      const h = new Date().getHours();
+      if (h >= 10) {
+        state.direction = "home";
+        document.getElementById("tabHome").classList.add("active");
+        document.getElementById("tabToSchool").classList.remove("active");
+      }
+    })();
+
+    render();
+    setInterval(render, 1000);
+  </script>
+</body>
+</html>
