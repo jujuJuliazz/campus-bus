@@ -197,7 +197,7 @@
     <div class="tabs" role="tablist">
       <button class="tab active" id="tabToSchool" type="button" aria-selected="true">
         去学校
-        <small>启迪上车</small>
+        <small>启迪协信上车</small>
       </button>
       <button class="tab" id="tabHome" type="button" aria-selected="false">
         回家
@@ -218,16 +218,21 @@
     </section>
 
     <footer>
-      工作日与周末自动切换。法定节假日请打开上方「按节假日时刻」。时刻表以你提供的为准。
+      工作及考试日与周末自动切换。法定节假日请打开上方「按节假日时刻」。去学校时刻按启迪协信到站时间。
     </footer>
   </div>
 
   <script>
     const SCHEDULE = {
       toSchool: {
-        stop: "启迪",
-        weekday: ["07:35", "08:02"],
-        holiday: ["07:50"]
+        stop: "启迪协信",
+        weekday: [
+          "07:43","08:10","08:43","09:08","09:38","10:08","10:28","11:08","11:48",
+          "12:28","13:01","13:41","14:18","14:58","15:38","16:18","17:18","18:21","19:21"
+        ],
+        holiday: [
+          "07:58","08:43","09:48","11:08","12:51","13:51","14:48","15:48","16:48","17:48","18:51"
+        ]
       },
       home: {
         stop: "道远楼东停车场",
@@ -296,7 +301,7 @@
         .map((t) => ({ t, min: parseHm(t) }))
         .filter((x) => x.min >= nowMin);
       const next = upcoming[0] || null;
-      const dayLabel = useHoliday(now) ? "周末/节假日" : "工作日";
+      const dayLabel = useHoliday(now) ? "周末及法定节假日" : "工作及考试日";
 
       document.getElementById("clock").textContent =
         `现在 ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
