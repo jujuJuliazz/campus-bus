@@ -6,6 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#0f766e" />
+  <meta name="apple-mobile-web-app-title" content="校巴·康城" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="manifest" href="./manifest-kangcheng.json" />
   <title>下一班校巴 · 中海康城国际东</title>
   <style>
     :root {
@@ -179,6 +182,37 @@
       font-size: 0.8125rem;
       font-variant-numeric: tabular-nums;
     }
+
+    .install-tip {
+      margin: 0 0 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #ecfeff;
+      border: 1px solid #99f6e4;
+      color: #115e59;
+      font-size: 0.875rem;
+      line-height: 1.45;
+      display: none;
+    }
+    .install-tip.show { display: block; }
+    .install-tip strong { display: block; margin-bottom: 4px; }
+    .install-tip .actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .install-tip button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .install-tip .primary { background: #0f766e; color: #fff; }
+    .install-tip .ghost { background: transparent; color: #0f766e; border: 1px solid #99f6e4; }
     footer {
       margin-top: 18px;
       color: var(--muted);
@@ -189,6 +223,16 @@
 </head>
 <body>
   <div class="wrap">
+
+    <div class="install-tip" id="installTip">
+      <strong>放到手机桌面，下次一点就开</strong>
+      <span id="installHint">iPhone 用 Safari 打开后点分享 →「添加到主屏幕」。安卓用 Chrome 菜单 →「添加到主屏幕」。</span>
+      <div class="actions">
+        <button class="primary" type="button" id="installBtn" hidden>安装到桌面</button>
+        <button class="ghost" type="button" id="dismissTip">知道了</button>
+      </div>
+    </div>
+
     <header>
       <h1>下一班校巴</h1>
       <p class="sub">打开即看 · 不用翻 App</p>
@@ -380,6 +424,40 @@
 
     render();
     setInterval(render, 1000);
+
+    (function setupInstallTip() {
+      const tip = document.getElementById("installTip");
+      const dismiss = document.getElementById("dismissTip");
+      const installBtn = document.getElementById("installBtn");
+      const hint = document.getElementById("installHint");
+      const key = "campus-bus-install-tip-v1";
+      const standalone = window.matchMedia("(display-mode: standalone)").matches
+        || window.navigator.standalone === true;
+      if (standalone || localStorage.getItem(key) === "1") return;
+      tip.classList.add("show");
+      dismiss.addEventListener("click", () => {
+        localStorage.setItem(key, "1");
+        tip.classList.remove("show");
+      });
+      let deferred;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferred = e;
+        installBtn.hidden = false;
+        hint.textContent = "点下面按钮即可安装到桌面，以后像 App 一样打开。";
+      });
+      installBtn.addEventListener("click", async () => {
+        if (!deferred) return;
+        deferred.prompt();
+        await deferred.userChoice;
+        deferred = null;
+        localStorage.setItem(key, "1");
+        tip.classList.remove("show");
+      });
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      }
+    })();
   </script>
 </body>
 </html>
